@@ -1,4 +1,4 @@
-module github.com/mkhazamipour/kubernetes-network-functionality-check
+module github.com/mkhazamipour/kubernetes-nodes-pinger
 
 go 1.21.1
 

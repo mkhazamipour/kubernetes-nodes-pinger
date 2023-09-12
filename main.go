@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/mkhazamipour/kubernetes-network-functionality-check/pkg"
+	"github.com/mkhazamipour/kubernetes-nodes-pinger/pkg"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
