@@ -1,0 +1,114 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: functionality-network-test
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kubernetes-network
+  namespace: functionality-network-test
+  labels:
+    name: kubernetes-network
+spec:
+  selector:
+    matchLabels:
+      name: kubernetes-network
+  template:
+    metadata:
+      labels:
+        name: kubernetes-network
+    spec:
+      volumes:
+        - name: kubeconfig
+          configMap:
+            name: kubeconfig
+            defaultMode: 420
+      tolerations:
+        - effect: NoSchedule
+          operator: Exists
+      containers:
+        - name: kubernetes-network
+          image: mormoroth/kubernetes-network-test:latest
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          resources: {}
+          volumeMounts:
+            - name: kubeconfig
+              mountPath: /app/config
+          imagePullPolicy: Always
+      restartPolicy: Always
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubernetes-network
+  namespace: functionality-network-test
+  labels:
+    name: kubernetes-network
+spec:
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  selector:
+    name: kubernetes-network
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kubeconfig
+  namespace: functionality-network-test
+data:
+  config: |
+    apiVersion: v1
+    clusters:
+    - cluster:
+        certificate-authority-data: 
+        server: https://127.0.0.1:6443
+      name: kubernetes
+    contexts:
+    - context:
+        cluster: kubernetes
+        user: kubernetes-admin
+      name: kubernetes-admin@kubernetes
+    current-context: kubernetes-admin@kubernetes
+    kind: Config
+    preferences: {}
+    users:
+    - name: kubernetes-admin
+      user:
+        client-certificate-data: 
+        client-key-data: 
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubernetes-network
+  namespace: functionality-network-test
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - kubernetes-network.cluster.morteza.dev
+      secretName: kubernetes-network-prod
+  rules:
+    - host: kubernetes-network.cluster.morteza.dev
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-network
+                port:
+                  number: 80
