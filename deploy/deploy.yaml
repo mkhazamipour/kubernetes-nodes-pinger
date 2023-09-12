@@ -30,7 +30,7 @@ spec:
           operator: Exists
       containers:
         - name: kubernetes-network
-          image: mormoroth/kubernetes-network-test:latest
+          image: mormoroth/kubernetes-nodes-pinger:latest
           ports:
             - containerPort: 8080
               protocol: TCP
