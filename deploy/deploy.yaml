@@ -2,23 +2,23 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: functionality-network-test
+  name: kubernetes-nodes-pinger
 ---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: kubernetes-network
-  namespace: functionality-network-test
+  name: kubernetes-nodes-pinger
+  namespace: kubernetes-nodes-pinger
   labels:
-    name: kubernetes-network
+    name: kubernetes-nodes-pinger
 spec:
   selector:
     matchLabels:
-      name: kubernetes-network
+      name: kubernetes-nodes-pinger
   template:
     metadata:
       labels:
-        name: kubernetes-network
+        name: kubernetes-nodes-pinger
     spec:
       volumes:
         - name: kubeconfig
@@ -29,7 +29,7 @@ spec:
         - effect: NoSchedule
           operator: Exists
       containers:
-        - name: kubernetes-network
+        - name: kubernetes-nodes-pinger
           image: mormoroth/kubernetes-nodes-pinger:latest
           ports:
             - containerPort: 8080
@@ -49,23 +49,23 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: kubernetes-network
-  namespace: functionality-network-test
+  name: kubernetes-nodes-pinger
+  namespace: kubernetes-nodes-pinger
   labels:
-    name: kubernetes-network
+    name: kubernetes-nodes-pinger
 spec:
   ports:
     - protocol: TCP
       port: 80
       targetPort: 8080
   selector:
-    name: kubernetes-network
+    name: kubernetes-nodes-pinger
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: kubeconfig
-  namespace: functionality-network-test
+  namespace: kubernetes-nodes-pinger
 data:
   config: |
     apiVersion: v1
@@ -91,24 +91,24 @@ data:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: kubernetes-network
-  namespace: functionality-network-test
+  name: kubernetes-nodes-pinger
+  namespace: kubernetes-nodes-pinger
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt
 spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - kubernetes-network.cluster.morteza.dev
-      secretName: kubernetes-network-prod
+        - kubernetes-nodes-pinger.cluster.morteza.dev
+      secretName: kubernetes-nodes-pinger-prod
   rules:
-    - host: kubernetes-network.cluster.morteza.dev
+    - host: kubernetes-nodes-pinger.cluster.morteza.dev
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: kubernetes-network
+                name: kubernetes-nodes-pinger
                 port:
                   number: 80
