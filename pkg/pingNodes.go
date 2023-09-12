@@ -48,6 +48,7 @@ func (c *KubernetesClient) PingNodes() {
 		}
 		pinger.Count = 4
 		pinger.Timeout = 10 * time.Second
+		pinger.Interval = 1 * time.Minute
 		pinger.SetPrivileged(true)
 		err = pinger.Run() // Blocks until finished.
 		if err != nil {
