@@ -1,4 +1,5 @@
 FROM golang:1.21.1 as builder
+LABEL maintainer="Morteza Khazamipour"
 
 WORKDIR /app
 
@@ -10,7 +11,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /app/kubernetes-nodes-pinger
 
 FROM alpine AS final
  
-LABEL maintainer="Morteza Khazamipour"
+
 
 WORKDIR /app
 
