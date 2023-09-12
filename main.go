@@ -9,10 +9,16 @@ import (
 
 func init() {
 	pkg.LoadEnvVariables()
+
 }
 func main() {
+
 	http.Handle("/metrics", promhttp.Handler())
-	http.ListenAndServe(":2112", nil)
-	kubeClient := pkg.KubernetesClient{}
-	kubeClient.PingNodes()
+	go func() {
+		http.ListenAndServe(":8080", nil)
+	}()
+	for {
+		pkg.Pinger()
+	}
+
 }
