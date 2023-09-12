@@ -16,8 +16,8 @@ WORKDIR /app
 
 COPY --from=builder /app/kubernetes-network-test /app
 
-COPY .env main.go /app/
+COPY .env /app/
 
-EXPOSE 2112
+EXPOSE 8080
 
 ENTRYPOINT [ "/app/kubernetes-network-test" ]
