@@ -6,7 +6,7 @@ COPY . /app
 
 RUN go mod download
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o /app/kubernetes-network-test
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/kubernetes-nodes-pinger
 
 FROM alpine AS final
  
@@ -14,10 +14,10 @@ LABEL maintainer="Morteza Khazamipour"
 
 WORKDIR /app
 
-COPY --from=builder /app/kubernetes-network-test /app
+COPY --from=builder /app/kubernetes-nodes-pinger /app
 
 COPY .env /app/
 
 EXPOSE 8080
 
-ENTRYPOINT [ "/app/kubernetes-network-test" ]
+ENTRYPOINT [ "/app/kubernetes-nodes-pinger" ]
