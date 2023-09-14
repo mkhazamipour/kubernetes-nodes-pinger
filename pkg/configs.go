@@ -6,6 +6,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -22,14 +23,28 @@ func LoadEnvVariables() {
 
 // Read kubeconfig file and return kubernetes clientset
 func (c *KubernetesClient) loadClient() *kubernetes.Clientset {
-	config, err := clientcmd.BuildConfigFromFlags("", os.Getenv("KUBECONFIG_LOCATION"))
-	if err != nil {
-		panic(err.Error())
+	if _, err := os.Stat("/app/" + os.Getenv("KUBECONFIG_LOCATION")); err == nil {
+		config, err := clientcmd.BuildConfigFromFlags("", os.Getenv("KUBECONFIG_LOCATION"))
+		if err != nil {
+			panic(err.Error())
+		}
+		clientset, err := kubernetes.NewForConfig(config)
+		if err != nil {
+			panic(err.Error())
+		}
+		c.kubernetesClient = clientset
+		return c.kubernetesClient
+	} else {
+		config, err := rest.InClusterConfig()
+		if err != nil {
+			panic(err.Error())
+		}
+		clientset, err := kubernetes.NewForConfig(config)
+		if err != nil {
+			panic(err.Error())
+		}
+		c.kubernetesClient = clientset
+		return c.kubernetesClient
 	}
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		panic(err.Error())
-	}
-	c.kubernetesClient = clientset
-	return c.kubernetesClient
+
 }
