@@ -9,7 +9,9 @@ Before running this application, ensure you have the following prerequisites:
 
 ## Installation
 You can deploy it with deploy/deploy.yaml
-Before running `kubectl create -f deploy/deploy.yaml` make sure you have replaced your kubeconfig in configmap and set or remove ingress accordingly
+Before running `kubectl create -f deploy/deploy.yaml` , make sure you have replaced your kubeconfig in configmap and set or remove ingress accordingly.
+
+You can also use inclusterConfig, for that just remove configmap and volume and mount point in the deploy.yaml in daemonset yaml, Its already commented out. It will check if the kubeconfig file does not exist on the pod, It tries to create inclusterConfig. in case of using the inclusterConfig, the RBAC inside the deploy.yaml must be applied.
 ## Prometheus Metrics
 This package provides two Prometheus counters to track the success and failure of ping operations:
 
