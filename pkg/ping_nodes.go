@@ -18,8 +18,10 @@ func init() {
 	prometheus.DefaultGatherer = reg
 	prometheus.DefaultRegisterer.Unregister(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
 	prometheus.DefaultRegisterer.Unregister(collectors.NewGoCollector())
-	prometheus.MustRegister(pingSuccessCounter)
-	prometheus.MustRegister(pingFailureCounter)
+	prometheus.MustRegister(pingSuccessCounterTotal)
+	prometheus.MustRegister(pingFailureCounterTotal)
+	prometheus.MustRegister(pingSuccessGauge)
+	prometheus.MustRegister(pingFailureGauge)
 }
 
 var (
@@ -32,7 +34,7 @@ type Nodes struct {
 }
 
 var (
-	pingSuccessCounter = prometheus.NewCounterVec(
+	pingSuccessCounterTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "ping_success_total",
 			Help: "Total number of successful pings",
@@ -40,10 +42,26 @@ var (
 		[]string{"Hostname", "NodeIP", "Pod", "PodOnNode"},
 	)
 
-	pingFailureCounter = prometheus.NewCounterVec(
+	pingFailureCounterTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "ping_failure_total",
 			Help: "Total number of failed pings",
+		},
+		[]string{"Hostname", "NodeIP", "Pod", "PodOnNode"},
+	)
+
+	pingSuccessGauge = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "ping_success_gauge",
+			Help: "Indicate if nodes currently responding to ping from other nodes",
+		},
+		[]string{"Hostname", "NodeIP", "Pod", "PodOnNode"},
+	)
+
+	pingFailureGauge = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "ping_failure_gauge",
+			Help: "Indicate if nodes currently not responding to ping from other nodes",
 		},
 		[]string{"Hostname", "NodeIP", "Pod", "PodOnNode"},
 	)
@@ -106,10 +124,12 @@ func Pinger() {
 		stats := pinger.Statistics()
 		if stats.PacketLoss == 0 {
 			fmt.Printf("Node %s is reachable from Pod %s on Node %s\n", host.HostName, host.PodName, host.PodNodeName)
-			pingSuccessCounter.WithLabelValues(host.HostName, host.NodeIpAddress, host.PodName, host.PodNodeName).Inc()
+			pingSuccessCounterTotal.WithLabelValues(host.HostName, host.NodeIpAddress, host.PodName, host.PodNodeName).Inc()
+			pingSuccessGauge.WithLabelValues(host.HostName, host.NodeIpAddress, host.PodName, host.PodNodeName).Set(1)
 		} else {
 			fmt.Printf("Node %s is unreachable from Pod %s on Node %s\n", host.HostName, host.PodName, host.PodNodeName)
-			pingFailureCounter.WithLabelValues(host.HostName, host.NodeIpAddress, host.PodName, host.PodNodeName).Inc()
+			pingFailureCounterTotal.WithLabelValues(host.HostName, host.NodeIpAddress, host.PodName, host.PodNodeName).Inc()
+			pingFailureGauge.WithLabelValues(host.HostName, host.NodeIpAddress, host.PodName, host.PodNodeName).Set(1)
 
 		}
 
